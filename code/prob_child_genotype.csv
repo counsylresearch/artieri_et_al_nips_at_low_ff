@@ -1,0 +1,57 @@
+# Table indicating the probability of a specific child genotype as a function of the corresponding paternal genotypes and fetal chromosomal aneuploidy state.
+# MAT: Maternal genotype
+# PAT: Paternal genotype
+# TYPE: Aneuploid status (d, diploid; m1, maternal MI aneuploidy; m2, maternal MII aneuploidy; p1, paternal MI anueploidy; p2, paternal MII aneuploidy)
+# AA - BBB: probability of given genotype 
+#
+# The probabilities calculated in this table were obtained as outlined in:
+# Rabinowitz M, Gemelos G, Banjevic M, Ryan A, Demko Z, Hill M, et al.
+# Methods for non-invasive prenatal ploidy calling.
+# US Patent Application 14/179,399, 2014. p. 32 [0343]
+#
+MAT,PAT,TYPE,AA,AB,BB,AAA,AAB,ABB,BBB
+AA,AA,d,1,0,0,0,0,0,0
+AA,AB,d,0.5,0.5,0,0,0,0,0
+AA,BB,d,0,1,0,0,0,0,0
+AB,AA,d,0.5,0.5,0,0,0,0,0
+AB,AB,d,0.25,0.5,0.25,0,0,0,0
+AB,BB,d,0,0.5,0.5,0,0,0,0
+BB,AA,d,0,1,0,0,0,0,0
+BB,AB,d,0,0.5,0.5,0,0,0,0
+BB,BB,d,0,0,1,0,0,0,0
+AA,AA,m1,0,0,0,1,0,0,0
+AA,AB,m1,0,0,0,0.5,0.5,0,0
+AA,BB,m1,0,0,0,0,1,0,0
+AB,AA,m1,0,0,0,0.5,0,0.5,0
+AB,AB,m1,0,0,0,0.25,0.25,0.25,0.25
+AB,BB,m1,0,0,0,0,0.5,0,0.5
+BB,AA,m1,0,0,0,0,0,1,0
+BB,AB,m1,0,0,0,0,0,0.5,0.5
+BB,BB,m1,0,0,0,0,0,0,1
+AA,AA,m2,0,0,0,1,0,0,0
+AA,AB,m2,0,0,0,0.5,0.5,0,0
+AA,BB,m2,0,0,0,0,1,0,0
+AB,AA,m2,0,0,0,0,1,0,0
+AB,AB,m2,0,0,0,0,0.5,0.5,0
+AB,BB,m2,0,0,0,0,0,1,0
+BB,AA,m2,0,0,0,0,0,1,0
+BB,AB,m2,0,0,0,0,0,0.5,0.5
+BB,BB,m2,0,0,0,0,0,0,1
+AA,AA,p1,0,0,0,1,0,0,0
+AA,AB,p1,0,0,0,0.5,0,0.5,0
+AA,BB,p1,0,0,0,0,0,1,0
+AB,AA,p1,0,0,0,0.5,0.5,0,0
+AB,AB,p1,0,0,0,0.25,0.25,0.25,0.25
+AB,BB,p1,0,0,0,0,0,0.5,0.5
+BB,AA,p1,0,0,0,0,1,0,0
+BB,AB,p1,0,0,0,0,0.5,0,0.5
+BB,BB,p1,0,0,0,0,0,0,1
+AA,AA,p2,0,0,0,1,0,0,0
+AA,AB,p2,0,0,0,0,1,0,0
+AA,BB,p2,0,0,0,0,0,1,0
+AB,AA,p2,0,0,0,0.5,0.5,0,0
+AB,AB,p2,0,0,0,0,0.5,0.5,0
+AB,BB,p2,0,0,0,0,0,0.5,0.5
+BB,AA,p2,0,0,0,0,1,0,0
+BB,AB,p2,0,0,0,0,0,1,0
+BB,BB,p2,0,0,0,0,0,0,1
