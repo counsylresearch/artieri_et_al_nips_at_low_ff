@@ -2,7 +2,7 @@
 
 This repository contains all of the Python code required to reproduce the results found in: 
 
-**Artieri CG, Haverty C, Evans EA, Goldberg JD, Haque IS, Yaron Y, and Muzzey D. 2016. Noninvasive Prenatal Screening at Low Fetal Fraction: Comparing Whole-Genome Sequencing and Single-Nucleotide Polymorphism Methods. BioRxiv. [LINK T.B.D.]**
+**Artieri CG, Haverty C, Evans EA, Goldberg JD, Haque IS, Yaron Y, and Muzzey D. 2016. Noninvasive Prenatal Screening at Low Fetal Fraction: Comparing Whole-Genome Sequencing and Single-Nucleotide Polymorphism Methods. [BioRxiv](http://biorxiv.org/content/early/2016/12/21/096024) https://doi.org/10.1101/096024**
 
 The code within is shared under the **Creative Commons Attribution-NonCommercial 4.0 International Public License (CC BY-NC 4.0)** as explained in the [LICENSE.md](LICENSE.md) file.
 
