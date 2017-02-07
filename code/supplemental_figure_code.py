@@ -34,7 +34,7 @@ if argv[-1] == "-e":
 def main():
     """
     Plot the individual panels of each of the figures in the manuscript
-    supplement. Note that Supplemental Figure S6 uses the same panels as
+    supplement. Note that Supplemental Figure S7 uses the same panels as
     Figure 2 from the main manuscript.
     """
 
@@ -52,6 +52,8 @@ def main():
 
     plot_figure_S7_panels()
 
+    plot_figure_S8_panels()
+
 def plot_figure_S1_panels():
     """
     Plot panels used in Figure S1.
@@ -59,51 +61,52 @@ def plot_figure_S1_panels():
 
 
     ###
-    # A Panels - plot of dispersion of bin counts across simulated chromosome
+    # A Panels - plot effect of depth on bin counts across simulated chromosome
     #            21
     ###
 
-    nbdisps = [0.1, 0.333, 0.666, 1] #Note that nbdisp = 1 collapses to Poisson
-    outfiles = ["Fig_S1A_wgs_neg_binom_0.1.png",
-                "Fig_S1A_wgs_neg_binom_0.333.png",
-                "Fig_S1A_wgs_neg_binom_0.666.png",
-                "Fig_S1A_wgs_neg_binom_Poisson.png"]
+    depths = [5e6, 11.5e6, 16e6, 25e6] #Note that nbdisp = 1 collapses to Poisson
+    outfiles = ["Fig_S1A_wgs_d5M.png",
+                "Fig_S1A_wgs_d11.5M.png",
+                "Fig_S1A_wgs_d16M.png",
+                "Fig_S1A_wgs_d25M.png"]
 
-    for nbdisp, outfile in zip(nbdisps, outfiles):
-        if nbdisp == 0.1:
-            plot_wgs_chr21_dip_tri(nbdisp=nbdisp, outfile=outfile, ylab=True)
+    for depth, outfile in zip(depths, outfiles):
+        if depth == 5e6:
+            plot_wgs_chr21_dip_tri(depth=depth, outfile=outfile, ylab=True, var_y=True)
         else:
-            plot_wgs_chr21_dip_tri(nbdisp=nbdisp, outfile=outfile)
+            plot_wgs_chr21_dip_tri(depth=depth, outfile=outfile, var_y=True)
 
 
     ###
-    # B Panels - Reproduction of manuscript Figure 3D under different values of
-    #            nbdisp for the WGS method.
+    # B Panels - Reproduction of manuscript Figure 3D under different
+    #            sequencing depths for the WGS method.
     ###
 
-    wgs_files = ["wgs_method_10000affected_nb0.1.csv",
-                 "wgs_method_10000affected_nb0.333.csv",
-                 "wgs_method_10000affected_nb0.666.csv",
-                 "wgs_method_10000affected.csv"]
+    wgs_files = ["wgs_method_10000affected_d5M.csv",
+                 "wgs_method_10000affected_d11.5M.csv",
+                 "wgs_method_10000affected.csv",
+                 "wgs_method_10000affected_d25M.csv"]
 
-    outfiles = ["Fig_S1B_wgs_neg_binom_0.1.png",
-                "Fig_S1B_wgs_neg_binom_0.333.png",
-                "Fig_S1B_wgs_neg_binom_0.666.png",
-                "Fig_S1B_wgs_neg_binom_Poisson.png"]
+    outfiles = ["Fig_S1B_wgs_depth_5M.png",
+                "Fig_S1B_wgs_depth_11.5M.png",
+                "Fig_S1B_wgs_depth_16M.png",
+                "Fig_S1B_wgs_depth_25M.png"]
 
     snp_dir = ANALYSES_DIR +"snp_method_bbdisp1000_nbdisp0.0005"
 
     for wgs_file, outfile in zip(wgs_files, outfiles):
 
         ylab = False
-        if wgs_file == "wgs_method_10000affected_nb0.1.csv":
+        if wgs_file == "wgs_method_10000affected_d5M.csv":
             ylab = True
         comp_sensitivity_plot(ANALYSES_DIR + wgs_file,
                               snp_dir,
                               FIGURES_DIR + outfile,
                               ylab=ylab)
 
-def plot_wgs_chr21_dip_tri(outfile, nbdisp=1, ff=0.1, ylab=False):
+def plot_wgs_chr21_dip_tri(outfile, nbdisp=1, depth=16e6, ff=0.1, ylab=False,
+                           var_y=False):
     """
     Generate plot of simulated WGS method bins under diploid and triploid
     scenarios for chromosome 21 along with the distribution from which those
@@ -111,21 +114,25 @@ def plot_wgs_chr21_dip_tri(outfile, nbdisp=1, ff=0.1, ylab=False):
 
     Args:
         outfile (str): The location of the output PNG file.
-        ff (float): Fetal fraction
+        depth (int): The number of reads generated for a given sample.
         nbdisp (float): The negative-binomial dispersion coefficient.
+        ff (float): Fetal fraction
         ylab (bool): If true, add a label to the y axis of the plot.
+        var_y (bool): If true, expand ylim to plot variable depth.
 
     Returns:
         None
 
     Raises:
         AssertionError: If nbdisp <= 0 or nbdisp > 1
+        AssertionError: If depth <= 0
     """
 
     assert 0 < nbdisp <= 1, "Value of nbdisp must be 0 < nbdisp <= 1"
+    assert depth > 0, "Value of depth must be > 0"
 
     #Generate data
-    reads_per_sample = 16e6
+    reads_per_sample = depth
     genome_size = 3e9
     bin_size = 50e3
     depth_per_bin = reads_per_sample / (genome_size / bin_size)
@@ -188,8 +195,13 @@ def plot_wgs_chr21_dip_tri(outfile, nbdisp=1, ff=0.1, ylab=False):
     ax[0] = plt.subplot(gs[0])
     ax[1] = plt.subplot(gs[1])
 
-    y_max = 500
-    y_min = 100
+    if var_y:
+        y_max = 600
+        y_min = 1
+    else:
+        y_max = 500
+        y_min = 100
+
     box_width = 4
 
     ax[0].scatter(x_axis, y_axis, color=cols, s=20, alpha=1)
@@ -227,7 +239,10 @@ def plot_wgs_chr21_dip_tri(outfile, nbdisp=1, ff=0.1, ylab=False):
         ax[1].fill_between(aneuploid, y_axis, color="red", alpha=0.5)
 
     ax[1].set_ylim([y_min, y_max])
-    ax[1].set_xlim([0, 0.025])
+    if var_y:
+        ax[1].set_xlim([0, 0.045])
+    else:
+        ax[1].set_xlim([0, 0.025])
     ax[1].get_yaxis().set_visible(False)
     ax[1].get_xaxis().set_visible(False)
     [i.set_linewidth(box_width) for i in ax[1].spines.itervalues()]
@@ -246,6 +261,57 @@ def plot_wgs_chr21_dip_tri(outfile, nbdisp=1, ff=0.1, ylab=False):
 def plot_figure_S2_panels():
     """
     Plot panels used in Figure S2.
+    """
+
+
+    ###
+    # A Panels - plot of dispersion of bin counts across simulated chromosome
+    #            21
+    ###
+
+    nbdisps = [0.1, 0.333, 0.666, 1] #Note that nbdisp = 1 collapses to Poisson
+    outfiles = ["Fig_S2A_wgs_neg_binom_0.1.png",
+                "Fig_S2A_wgs_neg_binom_0.333.png",
+                "Fig_S2A_wgs_neg_binom_0.666.png",
+                "Fig_S2A_wgs_neg_binom_Poisson.png"]
+
+    for nbdisp, outfile in zip(nbdisps, outfiles):
+        if nbdisp == 0.1:
+            plot_wgs_chr21_dip_tri(nbdisp=nbdisp, outfile=outfile, ylab=True)
+        else:
+            plot_wgs_chr21_dip_tri(nbdisp=nbdisp, outfile=outfile)
+
+
+    ###
+    # B Panels - Reproduction of manuscript Figure 3D under different values of
+    #            nbdisp for the WGS method.
+    ###
+
+    wgs_files = ["wgs_method_10000affected_nb0.1.csv",
+                 "wgs_method_10000affected_nb0.333.csv",
+                 "wgs_method_10000affected_nb0.666.csv",
+                 "wgs_method_10000affected.csv"]
+
+    outfiles = ["Fig_S2B_wgs_neg_binom_0.1.png",
+                "Fig_S2B_wgs_neg_binom_0.333.png",
+                "Fig_S2B_wgs_neg_binom_0.666.png",
+                "Fig_S2B_wgs_neg_binom_Poisson.png"]
+
+    snp_dir = ANALYSES_DIR +"snp_method_bbdisp1000_nbdisp0.0005"
+
+    for wgs_file, outfile in zip(wgs_files, outfiles):
+
+        ylab = False
+        if wgs_file == "wgs_method_10000affected_nb0.1.csv":
+            ylab = True
+        comp_sensitivity_plot(ANALYSES_DIR + wgs_file,
+                              snp_dir,
+                              FIGURES_DIR + outfile,
+                              ylab=ylab)
+
+def plot_figure_S3_panels():
+    """
+    Plot panels used in Figure S3.
     """
 
     ###
@@ -335,15 +401,15 @@ def plot_figure_S2_panels():
 
     plt.subplots_adjust(wspace=0, hspace=0)
 
-    fig.savefig(FIGURES_DIR + "Fig_S2_Rep_Hall_et_al_2014_Fig3.png",
+    fig.savefig(FIGURES_DIR + "Fig_S3_Rep_Hall_et_al_2014_Fig3.png",
                 dpi=FIG_DPI,
                 bbox_inches="tight",
                 format="png")
     plt.close(fig)
 
-def plot_figure_S3_panels():
+def plot_figure_S4_panels():
     """
-    Plot panels used in Figure S3.
+    Plot panels used in Figure S4.
     """
 
     ###
@@ -392,7 +458,7 @@ def plot_figure_S3_panels():
         #value is indistiguishable from the binomial.
         generate_snp_method_fig1_plot(points=df_points,
                                       distros=df_dist,
-                                      outfile="Fig_S3A_{}.png".format(key),
+                                      outfile="Fig_S4A_{}.png".format(key),
                                       bbdisp=val[1],
                                       nbdisp=nbdisp,
                                       ylab=ylab)
@@ -409,10 +475,10 @@ def plot_figure_S3_panels():
                 ANALYSES_DIR + "snp_method_bbdisp10000_nbdisp0.0005",
                 ANALYSES_DIR + "snp_method_binomial_nbdisp0.0005"]
 
-    outfiles = ["Fig_S3B_01_snp_bbdisp100.png",
-                "Fig_S3B_02_snp_bbdisp1000.png",
-                "Fig_S3B_03_snp_bbdisp10000.png",
-                "Fig_S3B_04_snp_binomial.png"]
+    outfiles = ["Fig_S4B_01_snp_bbdisp100.png",
+                "Fig_S4B_02_snp_bbdisp1000.png",
+                "Fig_S4B_03_snp_bbdisp10000.png",
+                "Fig_S4B_04_snp_binomial.png"]
 
     for snp_dir, outfile in zip(snp_dirs, outfiles):
 
@@ -424,9 +490,9 @@ def plot_figure_S3_panels():
                               FIGURES_DIR + outfile,
                               ylab=ylab)
 
-def plot_figure_S4_panels():
+def plot_figure_S5_panels():
     """
-    Plot panels used in Figure S4.
+    Plot panels used in Figure S5.
     """
 
     ###
@@ -473,7 +539,7 @@ def plot_figure_S4_panels():
 
         generate_snp_method_fig1_plot(points=df_points,
                                       distros=df_dist,
-                                      outfile="Fig_S4A_{}.png".format(key),
+                                      outfile="Fig_S5A_{}.png".format(key),
                                       bbdisp=bbdisp,
                                       nbdisp=val[1],
                                       ylab=ylab)
@@ -490,42 +556,10 @@ def plot_figure_S4_panels():
                 ANALYSES_DIR + "snp_method_bbdisp1000_nbdisp0.05",
                 ANALYSES_DIR + "snp_method_bbdisp1000_nbdisp1"]
 
-    outfiles = ["Fig_S4B_01_snp_nbdisp0.0005.png",
-                "Fig_S4B_02_snp_nbdisp0.005.png",
-                "Fig_S4B_03_snp_nbdisp0.05.png",
-                "Fig_S4B_04_snp_nbdisp1.png"]
-
-    for snp_dir, outfile in zip(snp_dirs, outfiles):
-
-        ylab = False
-        if snp_dir == snp_dirs[0]:
-            ylab = True
-        comp_sensitivity_plot(ANALYSES_DIR + wgs_file,
-                              snp_dir,
-                              FIGURES_DIR + outfile,
-                              ylab=ylab)
-
-def plot_figure_S5_panels():
-    """
-    Plot panels used in Figure S5.
-    """
-
-    ###
-    # Reproduction of manuscript Figure 3D varying the number of SNPs
-    # interrogated on the chromosome of interest.
-    ###
-
-    wgs_file = "wgs_method_10000affected.csv"
-
-    snp_dirs = [ANALYSES_DIR + "snp_method_bbdisp1000_nbdisp0.0005_snps1000",
-                ANALYSES_DIR + "snp_method_bbdisp1000_nbdisp0.0005",
-                ANALYSES_DIR + "snp_method_bbdisp1000_nbdisp0.0005_snps6000",
-                ANALYSES_DIR + "snp_method_bbdisp1000_nbdisp0.0005_snps10000"]
-
-    outfiles = ["Fig_S5_01_snp_1000snps.png",
-                "Fig_S5_02_snp_3348snps.png",
-                "Fig_S5_03_snp_6000snps.png",
-                "Fig_S5_04_snp_10000snps.png"]
+    outfiles = ["Fig_S5B_01_snp_nbdisp0.0005.png",
+                "Fig_S5B_02_snp_nbdisp0.005.png",
+                "Fig_S5B_03_snp_nbdisp0.05.png",
+                "Fig_S5B_04_snp_nbdisp1.png"]
 
     for snp_dir, outfile in zip(snp_dirs, outfiles):
 
@@ -540,6 +574,38 @@ def plot_figure_S5_panels():
 def plot_figure_S6_panels():
     """
     Plot panels used in Figure S6.
+    """
+
+    ###
+    # Reproduction of manuscript Figure 3D varying the number of SNPs
+    # interrogated on the chromosome of interest.
+    ###
+
+    wgs_file = "wgs_method_10000affected.csv"
+
+    snp_dirs = [ANALYSES_DIR + "snp_method_bbdisp1000_nbdisp0.0005_snps1000",
+                ANALYSES_DIR + "snp_method_bbdisp1000_nbdisp0.0005",
+                ANALYSES_DIR + "snp_method_bbdisp1000_nbdisp0.0005_snps6000",
+                ANALYSES_DIR + "snp_method_bbdisp1000_nbdisp0.0005_snps10000"]
+
+    outfiles = ["Fig_S6_01_snp_1000snps.png",
+                "Fig_S6_02_snp_3348snps.png",
+                "Fig_S6_03_snp_6000snps.png",
+                "Fig_S6_04_snp_10000snps.png"]
+
+    for snp_dir, outfile in zip(snp_dirs, outfiles):
+
+        ylab = False
+        if snp_dir == snp_dirs[0]:
+            ylab = True
+        comp_sensitivity_plot(ANALYSES_DIR + wgs_file,
+                              snp_dir,
+                              FIGURES_DIR + outfile,
+                              ylab=ylab)
+
+def plot_figure_S7_panels():
+    """
+    Plot panels used in Figure S7.
     """
 
         #Diploid
@@ -578,12 +644,12 @@ def plot_figure_S6_panels():
 
         generate_snp_method_fig2_plot(points=df_points,
                                       distros=df_dist,
-                                      outfile="Fig_S6_{}.png".format(key),
+                                      outfile="Fig_S7_{}.png".format(key),
                                       ylab=ylab)
 
-def plot_figure_S7_panels():
+def plot_figure_S8_panels():
     """
-    Plot panels used in Figure S7.
+    Plot panels used in Figure S8.
     """
 
     ###
@@ -638,7 +704,7 @@ def plot_figure_S7_panels():
 
     [i.set_linewidth(box_width) for i in ax.spines.itervalues()]
 
-    fig.savefig(FIGURES_DIR + "Fig_S7A_whole_ff_distro.png",
+    fig.savefig(FIGURES_DIR + "Fig_S8A_whole_ff_distro.png",
                 dpi=FIG_DPI,
                 bbox_inches="tight",
                 format="png")
@@ -693,7 +759,7 @@ def plot_figure_S7_panels():
     [i.set_linewidth(box_width) for i in ax.spines.itervalues()]
     [i.set_linewidth(box_width) for i in ax2.spines.itervalues()]
 
-    fig.savefig(FIGURES_DIR + "Fig_S7B_low_ff_distro.png",
+    fig.savefig(FIGURES_DIR + "Fig_S8B_low_ff_distro.png",
                 dpi=FIG_DPI,
                 bbox_inches="tight",
                 format="png")

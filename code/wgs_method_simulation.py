@@ -35,6 +35,14 @@ Results are output to a CSV file.
                      default=10000,
                      type=int,
                      metavar='INT')
+    opt.add_argument('-d', '--depth',
+                     dest='depth',
+                     action='store',
+                     help='Set the sequencing per-sample sequencing depth in \
+                           reads (default: 16000000, Jensen et al. 2013)',
+                     default=16000000,
+                     type=int,
+                     metavar='INT')
     opt.add_argument('-n', '--nbdisp',
                      dest='nbdisp',
                      action='store',
@@ -86,7 +94,7 @@ def main():
     nbdisp = args.nbdisp
 
     # PARAMETERS
-    READS_PER_SAMPLE = 16e6        #From Jensen et al. (2013)
+    READS_PER_SAMPLE = args.depth  #16e6 as default from Jensen et al. (2013)
     Z_CUTOFF_4_POS = 3             #Cutoff for positive call.
     SAMPLES_PER_BATCH = 100        #Samples per batch (i.e., flowcell)
     GENOME_SIZE = 3e9              #Size of genome

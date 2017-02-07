@@ -26,7 +26,15 @@ emit_all_wgs_commands() {
     echo "$OUTFILE: ${CODEDIR}wgs_method_simulation.py"
     echo -e "\tpython -O ${CODEDIR}wgs_method_simulation.py -o $OUTFILE -e"
 
-    #As above but varying the degree of negative binomial dispersion (Figure S1).
+    #As above but varying the sequencing depth (Figure S1).
+    for d in 5000000 11500000 25000000
+    do
+        OUTFILE="${SIMDIR}wgs_method_10000affected_d${d}.csv"
+        echo "$OUTFILE: ${CODEDIR}wgs_method_simulation.py"
+        echo -e "\tpython -O ${CODEDIR}wgs_method_simulation.py -o $OUTFILE -d $d -e"
+    done
+
+    #As above but varying the degree of negative binomial dispersion (Figure S2).
     for nb in 0.1 0.333 0.666
     do
         OUTFILE="${SIMDIR}wgs_method_10000affected_nb${nb}.csv"
@@ -37,7 +45,7 @@ emit_all_wgs_commands() {
     #Perform 10,000 permutations of the WGS method over fetal fractions 0.001 -
     #0.04 in 0.001 increments, however output a CSV file containing all permuted
     #z-scores rather than the calculated sensitivity and specifcity statistics for
-    #the purpose of calculating ROC curves and AUC metrics (Figure 3A)
+    #the purpose of calculating ROC curves and AUC metrics (Figure 3B)
     OUTFILE="${SIMDIR}wgs_method_10000affected_for_AUCs.csv"
     echo "$OUTFILE: ${CODEDIR}wgs_method_simulation.py"
     echo -e "\tpython -O ${CODEDIR}wgs_method_simulation.py -o $OUTFILE -z -e"
@@ -115,23 +123,23 @@ generate_snp_commands() {
 emit_all_snp_commands() {
     #Generate log-odds ratios for 10,000 SNP method samples for each nondisjunction
     #event origin over fetal fractions 0.001 - 0.04 in 0.001 increments using
-    #default simulation parameters (Figure 3B,C,D).
+    #default simulation parameters (Figure 3A,C,D).
 
     generate_snp_commands $DEFAULT_BETABIN $DEFAULT_NEGBIN $DEFAULT_SNPS $DEFAULT_FETAL_FRACTIONS
 
     # Supplemental figure data: LORs for 10000 SNP method samples for each
     # nondisjunction at fetal fractions of 1%, 2%, 3%, 4% with:
 
-    #      bbdisp values 100, 10000, and using binomial sampling (Figure S3).
+    #      bbdisp values 100, 10000, and using binomial sampling (Figure S4).
     for betabin in 100 10000 binomial; do
         generate_snp_commands $betabin $DEFAULT_NEGBIN $DEFAULT_SNPS $SUPP_FETAL_FRACTIONS
     done
 
-    #      nbdisp values 0.005, 0.05, and 1 (Poisson) (Figure S4)
+    #      nbdisp values 0.005, 0.05, and 1 (Poisson) (Figure S5)
     for negbin in 1 0.05 0.005; do
         generate_snp_commands $DEFAULT_BETABIN $negbin $DEFAULT_SNPS $SUPP_FETAL_FRACTIONS
     done
-    #      Number of SNPs on the interrogated chromosome as 1000, 6000, and 10000 (Figure S5).
+    #      Number of SNPs on the interrogated chromosome as 1000, 6000, and 10000 (Figure S6).
     for snps in 1000 6000 10000; do
         generate_snp_commands $DEFAULT_BETABIN $DEFAULT_NEGBIN $snps $SUPP_FETAL_FRACTIONS
     done
