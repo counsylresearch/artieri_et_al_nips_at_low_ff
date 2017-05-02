@@ -745,7 +745,99 @@ def plot_figure_3_panels():
     """
 
     ###
-    # Panel A - AUC as a function of fetal fraction for T21, T18, and T13 for
+    # Panel A - AUC as a function of fetal fraction for all origins of trisomy
+    #           under the SNP method aggregated as a function of their
+    #           prevalence across fetal fractions 0.1 - 4%.
+    ###
+
+    perms = 1000
+
+    auc_df = pd.DataFrame(columns=["FF", "MEAN_AUC", "LOW", "HIGH"])
+
+    for ff in np.arange(0.001, 0.041, 0.001):
+
+        auc = [] #Store permutation-specific AUCs
+
+        #Create df of LORs
+        df_all = pd.DataFrame()
+
+        for genotype in ["d", "m1", "m2", "p1", "p2"]:
+
+            df = pd.read_csv(ANALYSES_DIR + "snp_method_bbdisp1000_nbdisp0.0005/snp_{g}_ff{ff:.03f}_10000.csv".format(g=genotype, ff=ff), header=0)
+            df_all[genotype] = df["LOR"]
+
+        for p in range(perms):
+
+            d = np.sort(np.random.choice(df_all["d"], size=1000, replace=False))
+            a = np.sort(np.concatenate([np.random.choice(df_all["m1"], size=700, replace=False),
+                                        np.random.choice(df_all["m2"], size=200, replace=False),
+                                        np.random.choice(df_all["p1"], size=30, replace=False),
+                                        np.random.choice(df_all["p2"], size=70, replace=False)]))
+
+            tp, fp = [], []
+            for t in np.sort(np.concatenate([a, d])):
+                tp.append(np.sum(a <= t)/1000.)
+                fp.append(np.sum(d < t)/1000.)
+            tp[0], tp[-1] = 0, 1
+            fp[0], fp[-1] = 0, 1
+            auc.append(auc_calc(fp, tp))
+
+
+        auc_df.loc[len(auc_df)] = [ff,
+                                   np.mean(auc),
+                                   np.percentile(auc, 2.5),
+                                   np.percentile(auc, 97.5)]
+
+
+    plt.rc('figure', figsize=(10, 10))  #Change plot defaults
+    panels = (1, 1)
+    fig, ax = plt.subplots(panels[0], panels[1])
+
+    tick_font_size = 40
+    label_font_size = 40
+    box_width = 4
+
+    auc_snp_df = auc_df[auc_df["FF"] <= 0.04]
+
+    ax.plot(auc_snp_df["FF"], savgol_filter(auc_snp_df["MEAN_AUC"], 7, 2), lw=5, color="red", alpha=1, label="Aggregate of\nnondisjunctions")
+    ax.fill_between(auc_snp_df["FF"], savgol_filter(auc_snp_df['LOW'],7,2), savgol_filter(auc_snp_df['HIGH'], 7, 2), color="red", alpha=0.2)
+
+    ax.set_ylabel('Area under the curve (AUC)', fontsize=label_font_size)
+    ax.set_xlabel('Fetal fraction', fontsize=label_font_size)
+    ax.set_xticks(np.arange(0, 0.041, 0.01))
+    ax.set_xticklabels(["0", "1%", "2%", "3%", "4%"])
+    ax.set_xlim(-0.001, 0.042)
+    ax.set_yticks(np.arange(0.5, 1.01, 0.1))
+    ax.set_ylim(0.47, 1.03)
+
+    legend = ax.legend(loc=4, fontsize=32, frameon=False)
+    for legobj in legend.legendHandles:
+        legobj.set_linewidth(7)
+
+
+    for tl in ax.get_xticklabels():
+        tl.set_fontsize(tick_font_size)
+    for tl in ax.get_yticklabels():
+        tl.set_fontsize(tick_font_size)
+    [i.set_linewidth(3) for i in ax.spines.itervalues()]
+    ax.tick_params('y', length=10, width=box_width, which='major')
+    ax.tick_params('x', length=10, width=box_width, which='major')
+
+    for x in ax.get_xaxis().majorTicks:
+        x.set_pad(15)
+    for y in ax.get_yaxis().majorTicks:
+        y.set_pad(15)
+
+    [i.set_linewidth(box_width) for i in ax.spines.itervalues()]
+
+    fig.savefig(FIGURES_DIR + "Fig_3A_SNP_AUCs_vs_FF.png",
+                dpi=FIG_DPI,
+                bbox_inches="tight",
+                format="png")
+    plt.close(fig)
+
+    ###
+    # Panel B - AUC as a function of fetal fraction for T21, T18, and T13 for
     #           the WGS method across fetal fractions 0.1 - 4%.
     ###
 
@@ -857,99 +949,7 @@ def plot_figure_3_panels():
 
     [i.set_linewidth(box_width) for i in ax.spines.itervalues()]
 
-    fig.savefig(FIGURES_DIR + "Fig_3A_WGS_AUCs_vs_FF.png",
-                dpi=FIG_DPI,
-                bbox_inches="tight",
-                format="png")
-    plt.close(fig)
-
-    ###
-    # Panel B - AUC as a function of fetal fraction for all origins of trisomy
-    #           under the SNP method aggregated as a function of their
-    #           prevalence across fetal fractions 0.1 - 4%.
-    ###
-
-    perms = 1000
-
-    auc_df = pd.DataFrame(columns=["FF", "MEAN_AUC", "LOW", "HIGH"])
-
-    for ff in np.arange(0.001, 0.041, 0.001):
-
-        auc = [] #Store permutation-specific AUCs
-
-        #Create df of LORs
-        df_all = pd.DataFrame()
-
-        for genotype in ["d", "m1", "m2", "p1", "p2"]:
-
-            df = pd.read_csv(ANALYSES_DIR + "snp_method_bbdisp1000_nbdisp0.0005/snp_{g}_ff{ff:.03f}_10000.csv".format(g=genotype, ff=ff), header=0)
-            df_all[genotype] = df["LOR"]
-
-        for p in range(perms):
-
-            d = np.sort(np.random.choice(df_all["d"], size=1000, replace=False))
-            a = np.sort(np.concatenate([np.random.choice(df_all["m1"], size=700, replace=False),
-                                        np.random.choice(df_all["m2"], size=200, replace=False),
-                                        np.random.choice(df_all["p1"], size=30, replace=False),
-                                        np.random.choice(df_all["p2"], size=70, replace=False)]))
-
-            tp, fp = [], []
-            for t in np.sort(np.concatenate([a, d])):
-                tp.append(np.sum(a <= t)/1000.)
-                fp.append(np.sum(d < t)/1000.)
-            tp[0], tp[-1] = 0, 1
-            fp[0], fp[-1] = 0, 1
-            auc.append(auc_calc(fp, tp))
-
-
-        auc_df.loc[len(auc_df)] = [ff,
-                                   np.mean(auc),
-                                   np.percentile(auc, 2.5),
-                                   np.percentile(auc, 97.5)]
-
-
-    plt.rc('figure', figsize=(10, 10))  #Change plot defaults
-    panels = (1, 1)
-    fig, ax = plt.subplots(panels[0], panels[1])
-
-    tick_font_size = 40
-    label_font_size = 40
-    box_width = 4
-
-    auc_snp_df = auc_df[auc_df["FF"] <= 0.04]
-
-    ax.plot(auc_snp_df["FF"], savgol_filter(auc_snp_df["MEAN_AUC"], 7, 2), lw=5, color="red", alpha=1, label="Aggregate of\nnondisjunctions")
-    ax.fill_between(auc_snp_df["FF"], savgol_filter(auc_snp_df['LOW'],7,2), savgol_filter(auc_snp_df['HIGH'], 7, 2), color="red", alpha=0.2)
-
-    ax.set_ylabel('Area under the curve (AUC)', fontsize=label_font_size)
-    ax.set_xlabel('Fetal fraction', fontsize=label_font_size)
-    ax.set_xticks(np.arange(0, 0.041, 0.01))
-    ax.set_xticklabels(["0", "1%", "2%", "3%", "4%"])
-    ax.set_xlim(-0.001, 0.042)
-    ax.set_yticks(np.arange(0.5, 1.01, 0.1))
-    ax.set_ylim(0.47, 1.03)
-
-    legend = ax.legend(loc=4, fontsize=32, frameon=False)
-    for legobj in legend.legendHandles:
-        legobj.set_linewidth(7)
-
-
-    for tl in ax.get_xticklabels():
-        tl.set_fontsize(tick_font_size)
-    for tl in ax.get_yticklabels():
-        tl.set_fontsize(tick_font_size)
-    [i.set_linewidth(3) for i in ax.spines.itervalues()]
-    ax.tick_params('y', length=10, width=box_width, which='major')
-    ax.tick_params('x', length=10, width=box_width, which='major')
-
-    for x in ax.get_xaxis().majorTicks:
-        x.set_pad(15)
-    for y in ax.get_yaxis().majorTicks:
-        y.set_pad(15)
-
-    [i.set_linewidth(box_width) for i in ax.spines.itervalues()]
-
-    fig.savefig(FIGURES_DIR + "Fig_3B_SNP_AUCs_vs_FF.png",
+    fig.savefig(FIGURES_DIR + "Fig_3B_WGS_AUCs_vs_FF.png",
                 dpi=FIG_DPI,
                 bbox_inches="tight",
                 format="png")
